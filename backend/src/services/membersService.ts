@@ -24,6 +24,7 @@ export const createMember = async (member: Member) => {
 export const getHierarchyService = async (): Promise<RowDataPacket[]> => {
   const [rows] = await pool.query<RowDataPacket[]>(`
     SELECT 
+      m.m_rep_id as m_mst_id,
       g.m_rep_id AS mm_mst_gepd,
       g.m_name   AS NamaGEPD,
       e.m_rep_id AS m_mst_epd,
@@ -82,14 +83,14 @@ export const patchMemberService = async (id: string, fields: any) => {
 
 export const softDeleteMemberService = async (id: string) => {
   const [result] = await pool.query(
-    `UPDATE data_member SET deleted_at = NOW() WHERE id = ?`,
+    `UPDATE data_member SET deleted_at = NOW() WHERE m_rep_id = ?`,
     [id]
   );
   return result;
 };
 
 export const hardDeleteMemberService = async (id: string) => {
-  const [result] = await pool.query(`DELETE FROM data_member WHERE id = ?`, [
+  const [result] = await pool.query(`DELETE FROM data_member WHERE m_rep_id = ?`, [
     id,
   ]);
   return result;

@@ -34,4 +34,27 @@ class MembersService {
       rethrow;
     }
   }
+
+  static Future<List<dynamic>> getHierarchy() async {
+    final url = Uri.parse("${AuthService.baseUrl}/members/hierarchy");
+    final res = await ApiClient.get(url);
+
+    if (res.statusCode == 200) {
+      return jsonDecode(res.body);
+    } else {
+      throw Exception("Failed to load hierarchy: ${res.body}");
+    }
+  }
+
+  static Future<bool> softDeleteMember(String id) async {
+    final url = Uri.parse("${AuthService.baseUrl}/members/$id/soft-delete");
+
+    final response = await ApiClient.patch(url);
+
+    if (response.statusCode == 200) {
+      return true; // successfully soft-deleted
+    } else {
+      return false;
+    }
+  }
 }

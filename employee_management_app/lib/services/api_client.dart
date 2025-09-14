@@ -18,6 +18,12 @@ class ApiClient {
     );
   }
 
+  static Future<http.Response> patch(Uri url, {Object? body}) async {
+    return _send(
+      () async => http.patch(url, headers: await _headers(), body: body),
+    );
+  }
+
   static Future<http.Response> delete(Uri url) async {
     return _send(() async => http.delete(url, headers: await _headers()));
   }
