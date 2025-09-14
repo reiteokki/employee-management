@@ -7,7 +7,6 @@ const JWT_SECRET = process.env.JWT_SECRET || "supersecretkey";
 const REFRESH_SECRET = process.env.REFRESH_SECRET || "refreshsupersecret";
 
 export const loginService = async (m_rep_id: string, password: string) => {
-  console.log("loginService called with:", m_rep_id, password);
   const [rows] = await pool.query<RowDataPacket[]>(
     `
     SELECT m_rep_id, password, m_name, m_current_position AS role

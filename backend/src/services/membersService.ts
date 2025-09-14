@@ -48,8 +48,19 @@ export const getMemberByIdService = async (
   id: string
 ): Promise<RowDataPacket[]> => {
   const [rows] = await pool.query<RowDataPacket[]>(
-    `SELECT * FROM data_member 
-     WHERE m_rep_id = ? AND deleted_at IS NULL`,
+    `SELECT *
+FROM (
+    SELECT m_branch_id, m_rep_id, m_name, m_current_position, m_manager_id, password, 'superior' AS role
+    FROM data_superior
+    WHERE deleted_at IS NULL OR deleted_at IS NULL -- if you have soft delete later
+
+    UNION ALL
+
+    SELECT m_branch_id, m_rep_id, m_name, m_current_position, m_manager_id, password, 'member' AS role
+    FROM data_member
+    WHERE deleted_at IS NULL OR deleted_at IS NULL
+) AS all_users
+WHERE m_rep_id = ?`,
     [id]
   );
   return rows;

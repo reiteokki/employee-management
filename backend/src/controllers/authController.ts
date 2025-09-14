@@ -5,7 +5,6 @@ import { loginService } from "../services/authService";
 export const login = async (req: Request, res: Response) => {
   try {
     const { m_rep_id, password } = req.body;
-    console.log(m_rep_id, password);
     if (!m_rep_id || !password) {
       return res
         .status(400)
