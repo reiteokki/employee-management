@@ -4,6 +4,7 @@ import 'package:employee_management_app/screens/edit_screen.dart';
 import 'package:excel/excel.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../services/members_service.dart';
 
 class MainScreen extends StatefulWidget {
@@ -16,11 +17,20 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   bool _loading = true;
   List<dynamic> _hierarchy = [];
+  String? _userRole;
 
   @override
   void initState() {
     super.initState();
+    _loadUserRole();
     _fetchHierarchy();
+  }
+
+  Future<void> _loadUserRole() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _userRole = prefs.getString("user_role");
+    });
   }
 
   Future<void> _fetchHierarchy() async {
@@ -71,90 +81,99 @@ class _MainScreenState extends State<MainScreen> {
               _detailRow("GEPD Name", member["NamaGEPD"]),
               _detailRow("EPD Name", member["NamaEPD"]),
               const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: () async {
-                    Navigator.pop(context);
-                    final updatedMember = await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => EditMemberScreen(member: member),
-                      ),
-                    );
 
-                    if (updatedMember != null) {
-                      await _fetchHierarchy();
-                    }
-                  },
-                  icon: const Icon(Icons.edit),
-                  label: const Text("Update"),
-                ),
-              ),
-              const SizedBox(height: 12),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                  onPressed: () async {
-                    final confirmed = await showDialog<bool>(
-                      context: context,
-                      builder: (ctx) => AlertDialog(
-                        title: const Text("Confirm Delete"),
-                        content: Text(
-                          "Are you sure you want to delete ${member["m_name"] ?? "this member"}?",
-                        ),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.pop(ctx, false),
-                            child: const Text("Cancel"),
-                          ),
-                          ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.red,
-                            ),
-                            onPressed: () => Navigator.pop(ctx, true),
-                            child: const Text("Delete"),
-                          ),
-                        ],
-                      ),
-                    );
-
-                    if (confirmed == true) {
+              if (_userRole == "GEPD" || _userRole == "ADM") ...[
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () async {
                       Navigator.pop(context);
-
-                      final memberId = member["m_mst_id"];
-                      if (memberId == null || memberId.isEmpty) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text("Member ID not found")),
-                        );
-                        return;
-                      }
-
-                      final success = await MembersService.softDeleteMember(
-                        memberId,
+                      final updatedMember = await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => EditMemberScreen(member: member),
+                        ),
                       );
 
-                      if (success) {
+                      if (updatedMember != null) {
                         await _fetchHierarchy();
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text("${member["m_name"]} deleted"),
-                          ),
-                        );
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text("Failed to delete member"),
-                          ),
-                        );
                       }
-                    }
-                  },
-                  icon: const Icon(Icons.delete),
-                  label: const Text("Delete"),
+                    },
+                    icon: const Icon(Icons.edit),
+                    label: const Text("Update"),
+                  ),
                 ),
-              ),
+                const SizedBox(height: 12),
+              ],
+
+              if (_userRole == "GEPD" || _userRole == "ADM")
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                    ),
+                    onPressed: () async {
+                      final confirmed = await showDialog<bool>(
+                        context: context,
+                        builder: (ctx) => AlertDialog(
+                          title: const Text("Confirm Delete"),
+                          content: Text(
+                            "Are you sure you want to delete ${member["m_name"] ?? "this member"}?",
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(ctx, false),
+                              child: const Text("Cancel"),
+                            ),
+                            ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.red,
+                              ),
+                              onPressed: () => Navigator.pop(ctx, true),
+                              child: const Text("Delete"),
+                            ),
+                          ],
+                        ),
+                      );
+
+                      if (confirmed == true) {
+                        Navigator.pop(context);
+
+                        final memberId = member["m_mst_id"];
+                        if (memberId == null || memberId.isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text("Member ID not found"),
+                            ),
+                          );
+                          return;
+                        }
+
+                        final success = await MembersService.softDeleteMember(
+                          memberId,
+                        );
+
+                        if (success) {
+                          await _fetchHierarchy();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text("${member["m_name"]} deleted"),
+                            ),
+                          );
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text("Failed to delete member"),
+                            ),
+                          );
+                        }
+                      }
+                    },
+                    icon: const Icon(Icons.delete),
+                    label: const Text("Delete"),
+                  ),
+                ),
             ],
           ),
         );
@@ -220,17 +239,18 @@ class _MainScreenState extends State<MainScreen> {
       appBar: AppBar(
         title: const Text("Dashboard"),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            tooltip: "Create Member",
-            onPressed: () async {
-              await Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const CreateMemberScreen()),
-              );
-              await _fetchHierarchy();
-            },
-          ),
+          if (_userRole == "GEPD" || _userRole == "ADM")
+            IconButton(
+              icon: const Icon(Icons.add),
+              tooltip: "Create Member",
+              onPressed: () async {
+                await Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const CreateMemberScreen()),
+                );
+                await _fetchHierarchy();
+              },
+            ),
         ],
       ),
       body: _loading

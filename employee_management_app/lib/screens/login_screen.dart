@@ -57,7 +57,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 key: _formKey,
                 child: Column(
                   children: [
-                    // Email field
                     Padding(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 24,
@@ -67,7 +66,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         controller: _emailController,
                         decoration: const InputDecoration(
                           prefixIcon: Icon(Icons.email, color: Colors.blue),
-                          labelText: "Email (m_rep_id)",
+                          labelText: "User ID",
                           border: UnderlineInputBorder(),
                         ),
                         validator: (v) =>
@@ -75,7 +74,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
 
-                    // Password field
                     Padding(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 24,

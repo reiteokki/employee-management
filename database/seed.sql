@@ -1,6 +1,7 @@
 USE organization_db;
 
 INSERT INTO data_superior (m_branch_id, m_rep_id, m_name, m_current_position, m_manager_id, password) VALUES
+('JKT','JK00001','ADMINISTRATOR','ADM','JK00001','$2a$10$D9lP0M7v7cEJxG4vJ3gWeOHVpvXsvg.MSV0YyaybZ9ouryIDiFX1G'),
 ('JKT','JK03320','EDO APRIANTO','GEPD','JK03320','$2a$10$D9lP0M7v7cEJxG4vJ3gWeOHVpvXsvg.MSV0YyaybZ9ouryIDiFX1G'),
 ('BDG','BD03143','NUR ISLAMI Y LUTHFIATI','EPD','JK03320','$2a$10$D9lP0M7v7cEJxG4vJ3gWeOHVpvXsvg.MSV0YyaybZ9ouryIDiFX1G'),
 ('PLB','PL00205','FITRI HANDAYANI. AMG','EPD','JK03320','$2a$10$D9lP0M7v7cEJxG4vJ3gWeOHVpvXsvg.MSV0YyaybZ9ouryIDiFX1G'),

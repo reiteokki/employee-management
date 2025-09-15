@@ -70,7 +70,7 @@ export const patchMember = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const id = req.params.id;
 
-    if (req.user.role !== "GEPD" && req.user.m_rep_id !== id) {
+    if (req.user.role === "EPC" && req.user.m_rep_id !== id) {
       return res.status(403).json({ message: "Forbidden: insufficient role" });
     }
 
@@ -91,10 +91,10 @@ export const softDeleteMember = async (
   res: Response
 ) => {
   try {
-    if (req.user.role !== "GEPD") {
+    if (req.user.role === "EPC") {
       return res
         .status(403)
-        .json({ message: "Forbidden: only GEPD can delete" });
+        .json({ message: "Forbidden: only GEPD or ADM can delete" });
     }
 
     const result = await softDeleteMemberService(req.params.id);
@@ -110,10 +110,10 @@ export const hardDeleteMember = async (
   res: Response
 ) => {
   try {
-    if (req.user.role !== "GEPD") {
+    if (req.user.role === "EPC") {
       return res
         .status(403)
-        .json({ message: "Forbidden: only GEPD can delete" });
+        .json({ message: "Forbidden: only GEPD or ADM can delete" });
     }
 
     const result = await hardDeleteMemberService(req.params.id);
