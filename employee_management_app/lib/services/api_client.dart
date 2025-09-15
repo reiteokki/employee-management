@@ -36,7 +36,7 @@ class ApiClient {
     if (response.statusCode == 401) {
       final newToken = await AuthService.refreshAccessToken();
       if (newToken != null) {
-        response = await requestFn(); // retry
+        response = await requestFn();
       }
     }
 

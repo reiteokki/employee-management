@@ -27,7 +27,7 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _loading = false);
 
     if (token != null && mounted) {
-      Navigator.pushReplacementNamed(context, "dashboard");
+      Navigator.pushReplacementNamed(context, "/dashboard");
     } else {
       if (!mounted) return;
       ScaffoldMessenger.of(

@@ -37,7 +37,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _logout() async {
     await AuthService.logout();
     if (mounted) {
-      Navigator.of(context).pushNamedAndRemoveUntil("/login", (route) => false);
+      Navigator.pushNamedAndRemoveUntil(context, "/login", (route) => false);
     }
   }
 

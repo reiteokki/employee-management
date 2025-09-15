@@ -10,7 +10,7 @@ Future<void> main() async {
 
   final loggedIn = await AuthService.isLoggedIn();
 
-  runApp(MyApp(initialRoute: loggedIn ? "dashboard" : "login"));
+  runApp(MyApp(initialRoute: loggedIn ? "/dashboard" : "/login"));
 }
 
 class MyApp extends StatelessWidget {
@@ -25,8 +25,8 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(primarySwatch: Colors.blue),
       initialRoute: initialRoute,
       routes: {
-        "login": (_) => const LoginScreen(),
-        "dashboard": (_) => const DashboardScreen(),
+        "/login": (_) => const LoginScreen(),
+        "/dashboard": (_) => const DashboardScreen(),
       },
     );
   }

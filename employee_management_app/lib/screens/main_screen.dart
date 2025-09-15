@@ -1,5 +1,6 @@
 import 'dart:io';
-
+import 'package:employee_management_app/screens/create_member.dart';
+import 'package:employee_management_app/screens/edit_screen.dart';
 import 'package:excel/excel.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
@@ -23,10 +24,16 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   Future<void> _fetchHierarchy() async {
+    setState(() => _loading = true);
     try {
       final data = await MembersService.getHierarchy();
+
+      final transformed = data.map<Map<String, dynamic>>((row) {
+        return {...row, "m_manager_id": row["m_mst_epd"]};
+      }).toList();
+
       setState(() {
-        _hierarchy = data;
+        _hierarchy = transformed;
         _loading = false;
       });
     } catch (e) {
@@ -48,9 +55,8 @@ class _MainScreenState extends State<MainScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Title
               Text(
-                member["NamaEPD"] ?? "-",
+                member["m_name"] ?? "-",
                 style: const TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -62,20 +68,24 @@ class _MainScreenState extends State<MainScreen> {
                 style: const TextStyle(color: Colors.grey),
               ),
               const Divider(height: 24),
-
-              // Details
-              _detailRow("GEPD", member["NamaGEPD"]),
-              _detailRow("EPD", member["m_mst_epd"]),
-              _detailRow("Name", member["m_name"]),
+              _detailRow("GEPD Name", member["NamaGEPD"]),
+              _detailRow("EPD Name", member["NamaEPD"]),
               const SizedBox(height: 24),
-
-              // Action buttons
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
-                  onPressed: () {
+                  onPressed: () async {
                     Navigator.pop(context);
-                    // TODO: navigate to update screen
+                    final updatedMember = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => EditMemberScreen(member: member),
+                      ),
+                    );
+
+                    if (updatedMember != null) {
+                      await _fetchHierarchy();
+                    }
                   },
                   icon: const Icon(Icons.edit),
                   label: const Text("Update"),
@@ -126,11 +136,7 @@ class _MainScreenState extends State<MainScreen> {
                       );
 
                       if (success) {
-                        setState(() {
-                          _hierarchy.removeWhere(
-                            (e) => e["m_mst_id"] == memberId,
-                          );
-                        });
+                        await _fetchHierarchy();
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text("${member["m_name"]} deleted"),
@@ -156,7 +162,6 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 
-  /// Helper widget for detail rows
   Widget _detailRow(String label, dynamic value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4.0),
@@ -177,22 +182,22 @@ class _MainScreenState extends State<MainScreen> {
     final sheet = excel['Hierarchy'];
 
     sheet.appendRow([
-      "mm_mst_gepd",
-      "NamaGEPD",
-      "m_mst_epd",
-      "NamaEPD",
-      "Branch",
       "Name",
+      "Branch",
+      "EPD Name",
+      "EPD ID",
+      "GEPD Name",
+      "GEPD ID",
     ]);
 
     for (var row in _hierarchy) {
       sheet.appendRow([
-        row["mm_mst_gepd"] ?? "",
-        row["NamaGEPD"] ?? "",
-        row["m_mst_epd"] ?? "",
-        row["NamaEPD"] ?? "",
-        row["m_branch_id"] ?? "",
         row["m_name"] ?? "",
+        row["m_branch_id"] ?? "",
+        row["NamaEPD"] ?? "",
+        row["m_mst_epd"] ?? "",
+        row["NamaGEPD"] ?? "",
+        row["mm_mst_gepd"] ?? "",
       ]);
     }
 
@@ -212,7 +217,22 @@ class _MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Dashboard")),
+      appBar: AppBar(
+        title: const Text("Dashboard"),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.add),
+            tooltip: "Create Member",
+            onPressed: () async {
+              await Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const CreateMemberScreen()),
+              );
+              await _fetchHierarchy();
+            },
+          ),
+        ],
+      ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _hierarchy.isEmpty
@@ -228,23 +248,23 @@ class _MainScreenState extends State<MainScreen> {
                         scrollDirection: Axis.horizontal,
                         child: DataTable(
                           columns: const [
-                            DataColumn(label: Text("mm_mst_gepd")),
-                            DataColumn(label: Text("NamaGEPD")),
-                            DataColumn(label: Text("m_mst_epd")),
-                            DataColumn(label: Text("NamaEPD")),
-                            DataColumn(label: Text("Branch")),
                             DataColumn(label: Text("Name")),
+                            DataColumn(label: Text("Branch")),
+                            DataColumn(label: Text("EPD Name")),
+                            DataColumn(label: Text("EPD ID")),
+                            DataColumn(label: Text("GEPD Name")),
+                            DataColumn(label: Text("GEPD ID")),
                           ],
                           showCheckboxColumn: false,
                           rows: _hierarchy.map((row) {
                             return DataRow(
                               cells: [
-                                DataCell(Text(row["mm_mst_gepd"] ?? "")),
-                                DataCell(Text(row["NamaGEPD"] ?? "")),
-                                DataCell(Text(row["m_mst_epd"] ?? "")),
-                                DataCell(Text(row["NamaEPD"] ?? "")),
-                                DataCell(Text(row["m_branch_id"] ?? "")),
                                 DataCell(Text(row["m_name"] ?? "")),
+                                DataCell(Text(row["m_branch_id"] ?? "")),
+                                DataCell(Text(row["NamaEPD"] ?? "")),
+                                DataCell(Text(row["m_manager_id"] ?? "")),
+                                DataCell(Text(row["NamaGEPD"] ?? "")),
+                                DataCell(Text(row["mm_mst_gepd"] ?? "")),
                               ],
                               onSelectChanged: (_) => _showMemberDetail(row),
                             );
@@ -254,8 +274,6 @@ class _MainScreenState extends State<MainScreen> {
                     ),
                   ),
                 ),
-
-                // Export button
                 Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: SizedBox(

@@ -1,12 +1,15 @@
 import { RowDataPacket } from "mysql2";
 import pool from "../db";
 import { Member } from "../types/member";
+import bcrypt from "bcryptjs";
 
 export const createMember = async (member: Member) => {
+  const defaultPassword = await bcrypt.hash("password", 10);
+
   const sql = `
     INSERT INTO data_member 
-    (m_branch_id, m_rep_id, m_name, m_current_position, m_manager_id)
-    VALUES (?, ?, ?, ?, ?)
+    (m_branch_id, m_rep_id, m_name, m_current_position, m_manager_id, password)
+    VALUES (?, ?, ?, ?, ?, ?)
   `;
 
   const values = [
@@ -15,6 +18,7 @@ export const createMember = async (member: Member) => {
     member.m_name,
     member.m_current_position,
     member.m_manager_id,
+    defaultPassword,
   ];
 
   const [result] = await pool.query(sql, values);
@@ -90,8 +94,9 @@ export const softDeleteMemberService = async (id: string) => {
 };
 
 export const hardDeleteMemberService = async (id: string) => {
-  const [result] = await pool.query(`DELETE FROM data_member WHERE m_rep_id = ?`, [
-    id,
-  ]);
+  const [result] = await pool.query(
+    `DELETE FROM data_member WHERE m_rep_id = ?`,
+    [id]
+  );
   return result;
 };

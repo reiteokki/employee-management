@@ -52,8 +52,31 @@ class MembersService {
     final response = await ApiClient.patch(url);
 
     if (response.statusCode == 200) {
-      return true; // successfully soft-deleted
+      return true;
     } else {
+      return false;
+    }
+  }
+
+  static Future<bool> updateMember(String id, Map<String, dynamic> data) async {
+    final url = Uri.parse("${AuthService.baseUrl}/members/$id");
+    final response = await ApiClient.patch(url, body: jsonEncode(data));
+    return response.statusCode == 200;
+  }
+
+  static Future<bool> createMember(Map<String, dynamic> data) async {
+    try {
+      final response = await ApiClient.post(
+        Uri.parse("$baseUrl/members"),
+        body: jsonEncode(data),
+      );
+
+      if (response.statusCode == 201) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (e) {
       return false;
     }
   }
