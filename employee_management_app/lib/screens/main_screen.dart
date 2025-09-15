@@ -4,6 +4,7 @@ import 'package:employee_management_app/screens/edit_screen.dart';
 import 'package:excel/excel.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/members_service.dart';
 
@@ -198,6 +199,10 @@ class _MainScreenState extends State<MainScreen> {
     if (_hierarchy.isEmpty) return;
 
     final excel = Excel.createExcel();
+    for (var sheet in excel.sheets.keys.toList()) {
+      excel.delete(sheet);
+    }
+
     final sheet = excel['Hierarchy'];
 
     sheet.appendRow([
@@ -221,15 +226,16 @@ class _MainScreenState extends State<MainScreen> {
     }
 
     final directory = await getApplicationDocumentsDirectory();
-    final filePath = "${directory.path}/hierarchy.xlsx";
+
+    final timestamp = DateTime.now().toIso8601String().replaceAll(":", "-");
+    final filePath = "${directory.path}/hierarchy_$timestamp.xlsx";
 
     final fileBytes = excel.encode();
     if (fileBytes != null) {
       final file = File(filePath);
       await file.writeAsBytes(fileBytes);
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Excel exported to $filePath")));
+
+      await Share.shareXFiles([XFile(file.path)]);
     }
   }
 
